@@ -264,10 +264,7 @@
                         </div>
                     </div>
                     <div class="embedded-content">
-                        <img src="path/to/research_articles.jpg" alt="Статьи по исследованию LLM" width="300">
-                        <object data="path/to/research_articles.pdf" type="application/pdf" width="300" height="400">
-                            <p>Ваш браузер не поддерживает PDF, вот <a href="path/to/research_articles.pdf">ссылка на PDF</a>.</p>
-                        </object>
+                        <img src="path/to/course-p.png" alt="Курсовая работа" width="300">
                     </div>
                 </div>
                 
@@ -298,12 +295,8 @@
                         </div>
                     </div>
                     <div class="embedded-content">
-                        <img src="path/to/research_articles.jpg" alt="Загруженные статьи об исследовании LLM" width="300">
-                        <object data="path/to/research_articles.pdf" type="application/pdf" width="300" height="400">
-                            <p>Ваш браузер не поддерживает PDF, вот <a href="path/to/research_articles.pdf">ссылка на PDF</a>.</p>
-                        </object>
+                        <img src="path/to/course-p.png" alt="Курсовая работа" width="300">
                     </div>
-                </div>
                 
                 <div class="highlight">
                     <h3>Ключевые темы исследований:</h3>
