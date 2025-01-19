@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Знакомство с LLM - Digital Storytelling</title>
+    <style>
+        :root {
+            --primary-color: #2a4365;
+            --secondary-color: #4299e1;
+            --accent-color: #90cdf4;
+            --text-color: #2d3748;
+            --background-color: #f7fafc;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .book {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .page {
+            min-height: 100vh;
+            padding: 60px;
+            display: none;
+            animation: fadeIn 0.5s;
+            position: relative;
+            background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .navigation {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.95);
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+        }
+
+        button {
+            padding: 12px 24px;
+            margin: 0 8px;
+            border: none;
+            border-radius: 25px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px;
+            background: rgba(144, 205, 244, 0.1);
+            border-radius: 20px;
+        }
+
+        .title h1 {
+            font-size: 3.5em;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .content {
+            line-height: 1.8;
+            font-size: 1.1em;
+            color: var(--text-color);
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, rgba(144, 205, 244, 0.1) 0%, rgba(66, 153, 225, 0.1) 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 30px 0;
+            border: 1px solid rgba(66, 153, 225, 0.2);
+        }
+
+        .interactive-element {
+            cursor: pointer;
+            color: var(--secondary-color);
+            text-decoration: none;
+            position: relative;
+            padding: 2px 0;
+            transition: all 0.3s ease;
+        }
+
+        .interactive-element:hover {
+            color: var(--primary-color);
+        }
+
+        .interactive-element::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--secondary-color);
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease;
+        }
+
+        .interactive-element:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        .file-upload {
+            background: rgba(255,255,255,0.9);
+            border: 2px dashed var(--secondary-color);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            background: rgba(144, 205, 244, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-upload label {
+            cursor: pointer;
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+
+        .file-preview {
+            margin-top: 20px;
+            max-width: 100%;
+            border-radius: 10px;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 300px;
+            background: #e2e8f0;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            color: #718096;
+            font-weight: 500;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin: 30px 0;
+        }
+
+        .quote {
+            font-style: italic;
+            font-size: 1.2em;
+            color: var(--primary-color);
+            padding: 20px;
+            border-left: 4px solid var(--secondary-color);
+            margin: 20px 0;
+            background: rgba(144, 205, 244, 0.1);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 30px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            background: var(--secondary-color);
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="book" id="book">
+        <!-- Титульная страница -->
+        <div class="page active" id="page1">
+            <div class="title">
+                <h1>Знакомство с LLM</h1>
+                <h2>Digital Storytelling (DSt)</h2>
+                <h3>Андренко Ксения Владимировна</h3>
+                <p>5 курс факультета иностранных языков<br>
+                БрГУ имени А.С. Пушкина</p>
+                <p>Январь 2025</p>
+            </div>
+            <div class="file-upload">
+                <label for="cover-photo">
+                    Добавить фотографию обложки
+                    <input type="file" id="cover-photo" accept="image/*" onchange="previewImage(this, 'cover-preview')">
+                </label>
+                <div id="cover-preview" class="image-placeholder">
+                    Место для фотографии обложки
+                </div>
+            </div>
+        </div>
+
+        <!-- Страница 2 -->
+        <div class="page" id="page2">
+            <h2>Первая встреча с LLM</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Мой путь в мир искусственного интеллекта и языковых моделей начался неожиданно, но именно это неожиданное знакомство определило мою дальнейшую профессиональную траекторию. В рамках научно-исследовательской работы студентов (НИРС) мой научный руководитель представил мне первый чат-бот на базе LLM.</p>
+                        
+                        <div class="quote">
+                            "Технология, которая не просто отвечает на вопросы, а понимает контекст и может вести осмысленный диалог - это будущее лингвистики"
+                        </div>
+                    </div>
+                    <div class="embedded-content">
+                        <img src="path/to/research_articles.jpg" alt="Статьи по исследованию LLM" width="300">
+                        <object data="path/to/research_articles.pdf" type="application/pdf" width="300" height="400">
+                            <p>Ваш браузер не поддерживает PDF, вот <a href="path/to/research_articles.pdf">ссылка на PDF</a>.</p>
+                        </object>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Ключевые моменты первой встречи:</h3>
+                    <div class="timeline-item">
+                        <p>Знакомство с основными принципами работы языковых моделей</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Первый опыт взаимодействия с искусственным интеллектом</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Осознание потенциала LLM в образовании</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Страница 3 -->
+        <div class="page" id="page3">
+            <h2>Погружение в исследования</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>После первой встречи с LLM я была увлечена их способностью изменять наше понимание языка и коммуникации. Я начала писать цикл статей, исследуя эмерджентность этих моделей, их способность воспринимать контекст и влияние на будущее лингвистики.</p>
+                        
+                        <div class="quote">
+                            "Каждая статья - это шаг ближе к пониманию, как LLM могут преобразовать наш подход к обучению и исследованию языков"
+                        </div>
+                    </div>
+                    <div class="embedded-content">
+                        <img src="path/to/research_articles.jpg" alt="Загруженные статьи об исследовании LLM" width="300">
+                        <object data="path/to/research_articles.pdf" type="application/pdf" width="300" height="400">
+                            <p>Ваш браузер не поддерживает PDF, вот <a href="path/to/research_articles.pdf">ссылка на PDF</a>.</p>
+                        </object>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Ключевые темы исследований:</h3>
+                    <div class="timeline-item">
+                        <p>Эмерджентность в контексте LLM</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Механизмы понимания языка</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Перспективы развития</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Страница 4 -->
+        <div class="page" id="page4">
+            <h2>Курсовая работа</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Интерес к LLM привел к написанию курсовой работы "Лингводидактический потенциал больших языковых моделей". Это исследование не только укрепило мою веру в потенциал ИИ в образовании, но и стало моим высшим достижением во время обучения.</p>
+                        
+                        <div class="quote">
+                            "Защита на 10 баллов - это признание моей работы и стимул для дальнейших исследований"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="thesis">
+                            Добавить курсовую работу
+                            <input type="file" id="thesis" accept=".pdf,.doc,.docx" onchange="previewFile(this, 'thesis-preview')">
+                        </label>
+                        <div id="thesis-preview" class="image-placeholder">
+                            Курсовая работа по LLM
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Основные результаты курсовой:</h3>
+                    <div class="timeline-item">
+                        <p>Определение методик использования LLM в обучении</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Анализ эффективности применения LLM в образовательной среде</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Предложения по дальнейшему использованию LLM в лингводидактике</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 5 -->
+         <div class="page" id="page5">
+            <h2>Открытие новых горизонтов</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Успешная защита курсовой работы придала мне уверенности в использовании LLM для обучения иностранным языкам. Я открыла новые методы изучения, позволяющие не просто учить, но и понимать язык в контексте.</p>
+                        
+                        <div class="quote">
+                            "С LLM обучение языкам стало не только быстрее, но и интереснее"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="language-learning">
+                            Добавить материалы по изучению языков
+                            <input type="file" id="language-learning" accept=".pdf,.doc,.docx,.mp3" multiple onchange="previewFiles(this, 'language-learning-preview')">
+                        </label>
+                        <div id="language-learning-preview" class="image-placeholder">
+                            Материалы по изучению языков с LLM
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Инновационные аспекты обучения:</h3>
+                    <div class="timeline-item">
+                        <p>Персонализированное обучение</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Адаптивные учебные программы</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Интерактивные диалоги с ИИ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 6 -->
+         <div class="page" id="page6">
+            <h2>Новые акторы коммуникации</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Мои исследования привели к пониманию, как LLM меняют парадигму коммуникации, вводя новых "акторов" в диалог между человеком и машиной.</p>
+                        
+                        <div class="quote">
+                            "LLM открывают новую эру в коммуникации, где каждый может стать автором и слушателем одновременно"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="communication-actors">
+                            Добавить материалы о коммуникации
+                            <input type="file" id="communication-actors" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'communication-actors-preview')">
+                        </label>
+                        <div id="communication-actors-preview" class="image-placeholder">
+                            Материалы о новых акторах коммуникации
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Изменение в коммуникации:</h3>
+                    <div class="timeline-item">
+                        <p>Развитие диалоговых систем</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Адаптация языковых моделей для различных контекстов</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Улучшение взаимопонимания между людьми и технологиями</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 7 -->
+         <div class="page" id="page7">
+            <h2>Учусь учиться</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Работа с LLM научила меня ценить непрерывное образование и новые подходы к обучению. Я осознала важность адаптивного обучения, где каждый может найти свой путь к знаниям.</p>
+                        
+                        <div class="quote">
+                            "Обучение - это не конечная точка, а бесконечное путешествие по миру знаний"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="learning-methods">
+                            Добавить материалы о методиках обучения
+                            <input type="file" id="learning-methods" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'learning-methods-preview')">
+                        </label>
+                        <div id="learning-methods-preview" class="image-placeholder">
+                            Материалы о новых методиках обучения
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Новые подходы к обучению:</h3>
+                    <div class="timeline-item">
+                        <p>Персонализированное обучение</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Непрерывное образование</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Адаптивные учебные стратегии</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 8 -->
+         <div class="page" id="page8">
+            <h2>Практические достижения</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Мои исследования с LLM привели к значительным практическим результатам, включая участие в проектах, научных мероприятиях и публикациях.</p>
+                        
+                        <div class="quote">
+                            "Каждое достижение - это шаг на пути к созданию более интеллектуального и образованного общества"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="achievements">
+                            Добавить документы о достижениях
+                            <input type="file" id="achievements" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'achievements-preview')">
+                        </label>
+                        <div id="achievements-preview" class="image-placeholder">
+                            Документы о достижениях
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Значимые достижения:</h3>
+                    <div class="timeline-item">
+                        <p>Исследовательские проекты</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Участие в конференциях и семинарах</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Публикации в научных журналах</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 9 -->
+         <div class="page" id="page9">
+            <h2>Технологические инсайты</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Работа с LLM позволила мне глубже понять технологические аспекты ИИ, включая нейронные сети, машинное обучение и обработку естественного языка.</p>
+                        
+                        <div class="quote">
+                            "Технологии - это инструменты, которые мы учимся использовать для улучшения нашего мира"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="tech-insights">
+                            Добавить материалы о технологиях
+                            <input type="file" id="tech-insights" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'tech-insights-preview')">
+                        </label>
+                        <div id="tech-insights-preview" class="image-placeholder">
+                            Материалы о технологических инсайтах
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Ключевые технологии:</h3>
+                    <div class="timeline-item">
+                        <p>Нейронные сети</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Машинное обучение</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Обработка естественного языка</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 10 -->
+         <div class="page" id="page10">
+            <h2>Междисциплинарный подход</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Я открыла для себя, как LLM связывают лингвистику, компьютерные науки и ИИ, создавая новые области для исследований и применения.</p>
+                        
+                        <div class="quote">
+                            "Междисциплинарный подход - это ключ к инновациям"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="interdisciplinary">
+                            Добавить материалы о междисциплинарности
+                            <input type="file" id="interdisciplinary" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'interdisciplinary-preview')">
+                        </label>
+                        <div id="interdisciplinary-preview" class="image-placeholder">
+                            Материалы о междисциплинарном подходе
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Интеграция знаний:</h3>
+                    <div class="timeline-item">
+                        <p>Синтез лингвистики и ИИ</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Применение компьютерных наук в языкознании</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Разработка новых учебных программ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 11 -->
+         <div class="page" id="page11">
+            <h2>Личностный рост</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Работа с LLM не только профессионально, но и личностно обогатила меня, развив мои аналитические способности, информационную грамотность и адаптивность.</p>
+                        
+                        <div class="quote">
+                            "Технологии учат нас не только новым навыкам, но и новому образу мышления"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="personal-growth">
+                            Добавить материалы о личностном росте
+                            <input type="file" id="personal-growth" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'personal-growth-preview')">
+                        </label>
+                        <div id="personal-growth-preview" class="image-placeholder">
+                            Материалы о личностном росте
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Развитие личности:</h3>
+                    <div class="timeline-item">
+                        <p>Аналитические навыки</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Информационная грамотность</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Адаптивность</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 12 -->
+         <div class="page" id="page12">
+            <h2>Будущие перспективы</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Моя работа с LLM вдохновила меня на продолжение образования в области искусственного интеллекта, открывая новые карьерные возможности.</p>
+                        
+                        <div class="quote">
+                            "Будущее - это пространство для тех, кто готов учиться и изменяться"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="future-plans">
+                            Добавить планы на будущее
+                            <input type="file" id="future-plans" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'future-plans-preview')">
+                        </label>
+                        <div id="future-plans-preview" class="image-placeholder">
+                            Планы на будущее в образовании
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Образовательные планы:</h3>
+                    <div class="timeline-item">
+                        <p>Магистратура по ИИ</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Продолжение исследований</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Новые научные проекты</p>
+                    </div>
+                </div>
+            </div>
+        </div>    
+         <!-- Страница 13 -->
+         <div class="page" id="page13">
+            <h2>Профессиональные амбиции</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Моя цель - стать специалистом, сочетающим в себе знания лингвистики и ИИ, чтобы вносить вклад в образование и технологии.</p>
+                        
+                        <div class="quote">
+                            "Амбиции - это движущая сила прогресса"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="ambitions">
+                            Добавить документы о карьерных целях
+                            <input type="file" id="ambitions" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'ambitions-preview')">
+                        </label>
+                        <div id="ambitions-preview" class="image-placeholder">
+                            Документы о профессиональных амбициях
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Профессиональные цели:</h3>
+                    <div class="timeline-item">
+                        <p>Инновации в образовании</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Создание новых образовательных технологий</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Лидерство в научной сфере</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 14 -->
+         <div class="page" id="page14">
+            <h2>Вклад в науку</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Я планирую продолжать исследования, разрабатывая новые методы обучения с использованием LLM, чтобы внести свой вклад в научное сообщество.</p>
+                        
+                        <div class="quote">
+                            "Наука - это не только знание, но и практическое применение для улучшения жизни"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="science-contribution">
+                            Добавить материалы о вкладе в науку
+                            <input type="file" id="science-contribution" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'science-contribution-preview')">
+                        </label>
+                        <div id="science-contribution-preview" class="image-placeholder">
+                            Материалы о вкладе в науку
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Исследовательские планы:</h3>
+                    <div class="timeline-item">
+                        <p>Разработка новых методов обучения</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Публикации новых исследований</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Сотрудничество с другими учёными</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <!-- Страница 15 -->
+         <div class="page" id="page15">
+            <h2>Заключение</h2>
+            <div class="content">
+                <div class="grid-container">
+                    <div>
+                        <p>Мой путь с LLM только начинается, и я с оптимизмом смотрю в будущее, где технологии и образование соединяются для создания нового мира возможностей.</p>
+                        
+                        <div class="quote">
+                            "Вместе с LLM мы строим будущее, в котором обучение не знает границ"
+                        </div>
+                    </div>
+                    <div class="file-upload">
+                        <label for="conclusion">
+                            Добавить заключительные мысли
+                            <input type="file" id="conclusion" accept=".pdf,.doc,.docx" multiple onchange="previewFiles(this, 'conclusion-preview')">
+                        </label>
+                        <div id="conclusion-preview" class="image-placeholder">
+                            Заключительные мысли и планы
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="highlight">
+                    <h3>Новые горизонты:</h3>
+                    <div class="timeline-item">
+                        <p>Продолжение исследований в области ИИ и лингвистики</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Интеграция LLM в образовательные системы</p>
+                    </div>
+                    <div class="timeline-item">
+                        <p>Вдохновение для новых поколений исследователей</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Навигация -->
+        <div class="navigation">
+            <button onclick="prevPage()">◀ Назад</button>
+            <button onclick="nextPage()">Вперёд ▶</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const totalPages = 15;
+
+        function showPage(pageNumber) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById('page' + pageNumber).classList.add('active');
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                showPage(currentPage);
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                showPage(currentPage);
+            }
+        }
+
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" style="max-width: 100%; max-height: 300px; border-radius: 10px;">`;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Добавляем обработку клавиш
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                nextPage();
+            } else if (e.key === 'ArrowLeft') {
+                prevPage();
+            }
+        });
+    </script>
+</body>
+</html>
